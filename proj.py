@@ -43,14 +43,14 @@ def isWinner(bo, le):
     )
 
 def playerMove():
-    run = True
+    run=True
     while run:
-        pos = input('Please select the position for X (1-9): ')
+        pos=input('Please select the position for X (1-9): ')
         try:
-            move = int(pos)
-            if move > 0 and move < 10:
+            move=int(pos)
+            if move>0 and move<10:
                 if spaceIsFree(move):
-                    run = False
+                    run=False
                     insertLetter('X', move)
                 else:
                     print("Space is occupied!")
@@ -62,20 +62,22 @@ def playerMove():
             print("Please type a numerical value within the range!")
 
 def compMove():
-    possibleMoves = [x for x, letters in enumerate(board) if letters == ' ' and x != 0]
-    for let in ['O', 'X']:
+    possibleMoves=[x for x, letters in enumerate(board) if letters == ' ' and x != 0]
+    for let in ['O','X']:
         for i in possibleMoves:
-            boardcopy = board[:]
-            boardcopy[i] = let
-            if isWinner(boardcopy, let):
+            boardcopy=board[:]
+            boardcopy[i]=let
+            if isWinner(boardcopy,let):
                 return i
-    cornersopen = [i for i in possibleMoves if i in [1, 3, 7, 9]]
-    if len(cornersopen) > 0:
+    cornersopen=[i for i in possibleMoves if i in [1, 3, 7, 9]]
+    if 5 in possibleMoves:
+        return 5
+    if len(cornersopen)>0:
         return selectRandom(cornersopen)
     if 5 in possibleMoves:
         return 5
-    edgesOpen = [i for i in possibleMoves if i in [2, 4, 6, 8]]
-    if len(edgesOpen) > 0:
+    edgesOpen=[i for i in possibleMoves if i in [2, 4, 6, 8]]
+    if len(edgesOpen)>0:
         return selectRandom(edgesOpen)
     return 0
 
