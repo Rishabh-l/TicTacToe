@@ -71,6 +71,13 @@ def compMove():
                 return i
     if 5 in possibleMoves:
         return 5
+    oppCorners = [(1,9),(9,1),(3,7),(7,3)]
+    for a, b in oppCorners:
+        if board[a] == 'X' and board[b] == 'X':
+            edgesOpen = [i for i in possibleMoves if i in [2, 4, 6, 8]]
+            if len(edgesOpen) > 0:
+                return selectRandom(edgesOpen)
+
     cornersopen=[i for i in possibleMoves if i in [1, 3, 7, 9]]
     if len(cornersopen)>0:
         return selectRandom(cornersopen)

@@ -433,6 +433,7 @@ function compMove() {
       if (board[i] === '') possible.push(i);
     }
 
+    // 1. Win or block
     for (const letter of ['O', 'X']) {
       for (const i of possible) {
         const copy = [...board];
@@ -441,11 +442,23 @@ function compMove() {
       }
     }
 
+    // 2. Take center
     if (possible.includes(4)) return 4;
 
+    // 3. If player holds two opposite corners, take an edge to avoid fork
+    const oppCorners = [[0,8],[8,0],[2,6],[6,2]];
+    for (const [a, b] of oppCorners) {
+      if (board[a] === 'X' && board[b] === 'X') {
+        const edges = possible.filter(i => [1,3,5,7].includes(i));
+        if (edges.length > 0) return edges[Math.floor(Math.random() * edges.length)];
+      }
+    }
+
+    // 4. Corners
     const corners = possible.filter(i => [0,2,6,8].includes(i));
     if (corners.length > 0) return corners[Math.floor(Math.random() * corners.length)];
 
+    // 5. Edges
     const edges = possible.filter(i => [1,3,5,7].includes(i));
     if (edges.length > 0) return edges[Math.floor(Math.random() * edges.length)];
 
