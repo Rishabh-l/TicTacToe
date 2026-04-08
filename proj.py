@@ -69,13 +69,11 @@ def compMove():
             boardcopy[i]=let
             if isWinner(boardcopy,let):
                 return i
-    cornersopen=[i for i in possibleMoves if i in [1, 3, 7, 9]]
     if 5 in possibleMoves:
         return 5
+    cornersopen=[i for i in possibleMoves if i in [1, 3, 7, 9]]
     if len(cornersopen)>0:
         return selectRandom(cornersopen)
-    if 5 in possibleMoves:
-        return 5
     edgesOpen=[i for i in possibleMoves if i in [2, 4, 6, 8]]
     if len(edgesOpen)>0:
         return selectRandom(edgesOpen)
