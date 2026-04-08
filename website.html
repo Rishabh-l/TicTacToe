@@ -256,6 +256,27 @@
     letter-spacing: 1px;
   }
 
+  .insta-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: all 0.3s;
+    margin-top: 4px;
+  }
+
+  .insta-link:hover {
+    color: #e1306c;
+    border-color: #e1306c;
+    box-shadow: 0 0 15px rgba(225, 48, 108, 0.2);
+  }
+
   /* Thinking animation for computer */
   @keyframes dots {
     0%, 20% { content: '.'; }
@@ -315,6 +336,15 @@
     </div>
     <span class="footer-text">Position guide</span>
   </div>
+
+  <a href="https://instagram.com/rishabhwtf_" target="_blank" class="insta-link">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+      <circle cx="12" cy="12" r="5"></circle>
+      <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"></circle>
+    </svg>
+    @rishabhwtf_
+  </a>
 </div>
 
 <script>
