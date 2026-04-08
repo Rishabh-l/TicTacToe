@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe | Rishabh Patel</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #2a2a3a;
+    --x-color: #ff6b6b;
+    --x-glow: #ff6b6b44;
+    --o-color: #4ecdc4;
+    --o-glow: #4ecdc444;
+    --text: #e8e8e8;
+    --text-dim: #6a6a7a;
+    --win-glow: #ffd93d;
+    --accent: #c084fc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      transparent 0px,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 20px;
+  }
+
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
+    animation: titlePulse 3s ease-in-out infinite;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { text-shadow: 0 0 20px rgba(192, 132, 252, 0.4); }
+    50% { text-shadow: 0 0 40px rgba(192, 132, 252, 0.7), 0 0 60px rgba(192, 132, 252, 0.3); }
+  }
+
+  .credit {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* Scoreboard */
+  .scoreboard {
+    display: flex;
+    gap: 2px;
+    background: var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    width: 320px;
+  }
+
+  .score-item {
+    flex: 1;
+    background: var(--surface);
+    padding: 12px 8px;
+    text-align: center;
+    transition: background 0.3s;
+  }
+
+  .score-item.active-x { background: rgba(255, 107, 107, 0.1); }
+  .score-item.active-o { background: rgba(78, 205, 196, 0.1); }
+
+  .score-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .score-label.x-label { color: var(--x-color); }
+  .score-label.o-label { color: var(--o-color); }
+
+  .score-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  /* Board */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 4px;
+    background: var(--border);
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+  }
+
+  .cell {
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 36px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    user-select: none;
+  }
+
+  .cell:first-child { border-radius: 6px 0 0 0; }
+  .cell:nth-child(3) { border-radius: 0 6px 0 0; }
+  .cell:nth-child(7) { border-radius: 0 0 0 6px; }
+  .cell:last-child { border-radius: 0 0 6px 0; }
+
+  .cell:hover:not(.taken) {
+    background: #1a1a2a;
+  }
+
+  .cell:active:not(.taken) {
+    transform: scale(0.95);
+  }
+
+  .cell.taken { cursor: default; }
+
+  .cell.x {
+    color: var(--x-color);
+    text-shadow: 0 0 15px var(--x-glow);
+    animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .cell.o {
+    color: var(--o-color);
+    text-shadow: 0 0 15px var(--o-glow);
+    animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .cell.win-cell {
+    animation: winPulse 0.6s ease-in-out infinite alternate;
+  }
+
+  .cell.win-cell.x { background: rgba(255, 107, 107, 0.15); }
+  .cell.win-cell.o { background: rgba(78, 205, 196, 0.15); }
+
+  @keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes winPulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+  }
+
+  /* Status */
+  .status {
+    font-size: 14px;
+    color: var(--text-dim);
+    height: 24px;
+    letter-spacing: 1px;
+    transition: color 0.3s;
+  }
+
+  .status.win { color: var(--win-glow); font-weight: 500; }
+  .status.lose { color: var(--x-color); }
+  .status.tie { color: var(--text-dim); }
+
+  /* Buttons */
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 10px 28px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .btn:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 15px rgba(192, 132, 252, 0.2);
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn.hidden { display: none; }
+
+  /* Position guide */
+  .guide {
+    display: grid;
+    grid-template-columns: repeat(3, 28px);
+    gap: 3px;
+    opacity: 0.3;
+  }
+
+  .guide-cell {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .footer-text {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* Thinking animation for computer */
+  @keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+  }
+
+  .thinking::after {
+    content: '';
+    animation: dots 1s steps(1) infinite;
+  }
+
+  /* Mobile */
+  @media (max-width: 400px) {
+    .board {
+      grid-template-columns: repeat(3, 85px);
+      grid-template-rows: repeat(3, 85px);
+    }
+    h1 { font-size: 16px; }
+    .scoreboard { width: 275px; }
+    .cell { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Tic Tac Toe</h1>
+  <p class="credit">by Rishabh Patel</p>
+
+  <div class="scoreboard">
+    <div class="score-item" id="score-x">
+      <div class="score-label x-label">You (X)</div>
+      <div class="score-value" id="x-score">0</div>
+    </div>
+    <div class="score-item" id="score-tie">
+      <div class="score-label">Ties</div>
+      <div class="score-value" id="tie-score">0</div>
+    </div>
+    <div class="score-item" id="score-o">
+      <div class="score-label o-label">Comp (O)</div>
+      <div class="score-value" id="o-score">0</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Your turn — place X</div>
+
+  <div class="board" id="board"></div>
+
+  <button class="btn hidden" id="playAgain" onclick="resetGame()">Play Again</button>
+
+  <div class="footer">
+    <div class="guide">
+      <div class="guide-cell">1</div><div class="guide-cell">2</div><div class="guide-cell">3</div>
+      <div class="guide-cell">4</div><div class="guide-cell">5</div><div class="guide-cell">6</div>
+      <div class="guide-cell">7</div><div class="guide-cell">8</div><div class="guide-cell">9</div>
+    </div>
+    <span class="footer-text">Position guide</span>
+  </div>
+</div>
+
+<script>
+  // Game state
+  let board = Array(9).fill('');
+  let gameActive = true;
+  let scores = { X: 0, O: 0, Ties: 0 };
+
+  const winCombos = [
+    [0,1,2], [3,4,5], [6,7,8],  // rows
+    [0,3,6], [1,4,7], [2,5,8],  // cols
+    [0,4,8], [2,4,6]             // diagonals
+  ];
+
+  const statusEl = document.getElementById('status');
+  const boardEl = document.getElementById('board');
+  const playAgainBtn = document.getElementById('playAgain');
+
+  // Build board
+  function buildBoard() {
+    boardEl.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.index = i;
+      cell.addEventListener('click', () => handleClick(i));
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function handleClick(index) {
+    if (!gameActive || board[index] !== '') return;
+
+    // Player move
+    board[index] = 'X';
+    updateCell(index, 'X');
+
+    if (checkWin('X')) {
+      endGame('win');
+      return;
+    }
+    if (isBoardFull()) {
+      endGame('tie');
+      return;
+    }
+
+    // Computer thinking delay
+    gameActive = false;
+    statusEl.textContent = 'Computer is thinking';
+    statusEl.classList.add('thinking');
+
+    setTimeout(() => {
+      statusEl.classList.remove('thinking');
+      const move = compMove();
+      if (move === -1) {
+        endGame('tie');
+        return;
+      }
+      board[move] = 'O';
+      updateCell(move, 'O');
+
+      if (checkWin('O')) {
+        endGame('lose');
+        return;
+      }
+      if (isBoardFull()) {
+        endGame('tie');
+        return;
+      }
+
+      gameActive = true;
+      statusEl.textContent = 'Your turn — place X';
+    }, 400 + Math.random() * 300);
+  }
+
+  function updateCell(index, letter) {
+    const cell = boardEl.children[index];
+    cell.textContent = letter;
+    cell.classList.add('taken', letter.toLowerCase());
+  }
+
+  // Same AI logic as your Python version
+  function compMove() {
+    const possible = [];
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === '') possible.push(i);
+    }
+
+    // Check if computer can win, then block player
+    for (const letter of ['O', 'X']) {
+      for (const i of possible) {
+        const copy = [...board];
+        copy[i] = letter;
+        if (isWinner(copy, letter)) return i;
+      }
+    }
+
+    // Corners
+    const corners = possible.filter(i => [0,2,6,8].includes(i));
+    if (corners.length > 0) return corners[Math.floor(Math.random() * corners.length)];
+
+    // Center
+    if (possible.includes(4)) return 4;
+
+    // Edges
+    const edges = possible.filter(i => [1,3,5,7].includes(i));
+    if (edges.length > 0) return edges[Math.floor(Math.random() * edges.length)];
+
+    return -1;
+  }
+
+  function isWinner(bo, le) {
+    return winCombos.some(combo => combo.every(i => bo[i] === le));
+  }
+
+  function checkWin(letter) {
+    const won = isWinner(board, letter);
+    if (won) {
+      const combo = winCombos.find(c => c.every(i => board[i] === letter));
+      combo.forEach(i => {
+        boardEl.children[i].classList.add('win-cell');
+      });
+    }
+    return won;
+  }
+
+  function isBoardFull() {
+    return board.every(cell => cell !== '');
+  }
+
+  function endGame(result) {
+    gameActive = false;
+    playAgainBtn.classList.remove('hidden');
+
+    if (result === 'win') {
+      statusEl.textContent = 'Congo! You\'ve Won!';
+      statusEl.className = 'status win';
+      scores.X++;
+    } else if (result === 'lose') {
+      statusEl.textContent = 'tf you\'ve lost! Pathetic!';
+      statusEl.className = 'status lose';
+      scores.O++;
+    } else {
+      statusEl.textContent = 'Tie Game!';
+      statusEl.className = 'status tie';
+      scores.Ties++;
+    }
+
+    updateScoreboard();
+  }
+
+  function updateScoreboard() {
+    document.getElementById('x-score').textContent = scores.X;
+    document.getElementById('o-score').textContent = scores.O;
+    document.getElementById('tie-score').textContent = scores.Ties;
+
+    // Highlight active score
+    document.getElementById('score-x').className = 'score-item';
+    document.getElementById('score-o').className = 'score-item';
+    document.getElementById('score-tie').className = 'score-item';
+  }
+
+  function resetGame() {
+    board = Array(9).fill('');
+    gameActive = true;
+    statusEl.textContent = 'Your turn — place X';
+    statusEl.className = 'status';
+    playAgainBtn.classList.add('hidden');
+    buildBoard();
+  }
+
+  // Init
+  buildBoard();
+</script>
+
+</body>
+</html>
