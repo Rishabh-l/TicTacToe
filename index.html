@@ -221,8 +221,6 @@
 
   .btn:active { transform: scale(0.97); }
 
-  .btn.hidden { display: none; }
-
   /* Position guide */
   .guide {
     display: grid;
@@ -326,7 +324,7 @@
 
   <div class="board" id="board"></div>
 
-  <button class="btn hidden" id="playAgain" onclick="resetGame()">Play Again</button>
+  <button class="btn" id="playAgain" onclick="resetGame()">Restart</button>
 
   <div class="footer">
     <div class="guide">
@@ -427,13 +425,13 @@
   }
 
   // Same AI logic as your Python version
-function compMove() {
+  function compMove() {
     const possible = [];
     for (let i = 0; i < 9; i++) {
       if (board[i] === '') possible.push(i);
     }
 
-    // 1. Win or block
+    // Check if computer can win, then block player
     for (const letter of ['O', 'X']) {
       for (const i of possible) {
         const copy = [...board];
@@ -442,28 +440,20 @@ function compMove() {
       }
     }
 
-    // 2. Take center
-    if (possible.includes(4)) return 4;
-
-    // 3. If player holds two opposite corners, take an edge to avoid fork
-    const oppCorners = [[0,8],[8,0],[2,6],[6,2]];
-    for (const [a, b] of oppCorners) {
-      if (board[a] === 'X' && board[b] === 'X') {
-        const edges = possible.filter(i => [1,3,5,7].includes(i));
-        if (edges.length > 0) return edges[Math.floor(Math.random() * edges.length)];
-      }
-    }
-
-    // 4. Corners
+    // Corners
     const corners = possible.filter(i => [0,2,6,8].includes(i));
     if (corners.length > 0) return corners[Math.floor(Math.random() * corners.length)];
 
-    // 5. Edges
+    // Center
+    if (possible.includes(4)) return 4;
+
+    // Edges
     const edges = possible.filter(i => [1,3,5,7].includes(i));
     if (edges.length > 0) return edges[Math.floor(Math.random() * edges.length)];
 
     return -1;
-}
+  }
+
   function isWinner(bo, le) {
     return winCombos.some(combo => combo.every(i => bo[i] === le));
   }
@@ -485,7 +475,6 @@ function compMove() {
 
   function endGame(result) {
     gameActive = false;
-    playAgainBtn.classList.remove('hidden');
 
     if (result === 'win') {
       statusEl.textContent = 'Congo! You\'ve Won!';
@@ -520,7 +509,6 @@ function compMove() {
     gameActive = true;
     statusEl.textContent = 'Your turn — place X';
     statusEl.className = 'status';
-    playAgainBtn.classList.add('hidden');
     buildBoard();
   }
 
